@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="GymLog"/>
+<title>GymLog – Diario Allenamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:#F5F4F0;min-height:100vh;padding-bottom:80px;color:#1a1a1a;}
+input,textarea,select,button{font-family:'Outfit',sans-serif;}
+:root{
+  --bg:#F5F4F0;
+  --surface:#FFFFFF;
+  --surface2:#F0EFE9;
+  --border:#E5E3DC;
+  --text:#1A1A1A;
+  --text2:#6B6960;
+  --text3:#A8A59C;
+  --accent:#2D6BE4;
+  --accent-light:#EBF0FC;
+  --accent2:#E85D3A;
+  --accent2-light:#FDF0EC;
+  --green:#2A9D6A;
+  --green-light:#E8F5EE;
+  --amber:#D97706;
+  --amber-light:#FEF3C7;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,.08);
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--surface);
+  padding:env(safe-area-inset-top,16px) 20px 0;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200;
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:0;}
+.header-logo{display:flex;align-items:center;gap:8px;}
+.logo-mark{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:16px;height:16px;fill:white;}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.header-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+
+/* ── NAV ── */
+.nav{display:flex;background:var(--surface);padding:0 4px;}
+.nav-btn{flex:1;padding:10px 4px 12px;border:none;background:transparent;font-size:10px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;text-align:center;letter-spacing:.3px;text-transform:uppercase;transition:all .2s;}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.nav-icon{font-size:18px;display:block;margin-bottom:3px;}
+
+.content{padding:16px;max-width:680px;margin:0 auto;}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.card-pad{padding:16px;}
+
+/* ── PILL BADGE ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.pill-blue{background:var(--accent-light);color:var(--accent);}
+.pill-red{background:var(--accent2-light);color:var(--accent2);}
+.pill-green{background:var(--green-light);color:var(--green);}
+.pill-amber{background:var(--amber-light);color:var(--amber);}
+.pill-gray{background:var(--surface2);color:var(--text2);}
+
+/* ── SECTION LABEL ── */
+.slabel{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;margin-top:4px;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px 10px;text-align:center;box-shadow:var(--shadow);}
+.stat-icon{font-size:20px;margin-bottom:4px;}
+.stat-val{font-size:20px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.3;}
+
+/* ── PROGRAM CARD ── */
+.prog-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;cursor:pointer;transition:box-shadow .2s;}
+.prog-card:active{box-shadow:var(--shadow-md);}
+.prog-card-header{padding:16px;display:flex;align-items:center;gap:12px;}
+.prog-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.prog-card-actions{display:flex;gap:6px;padding:0 16px 14px;}
+
+/* ── DAY CHIP ── */
+.day-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:all .15s;}
+.day-chip.selected{background:var(--accent);color:white;border-color:var(--accent);}
+.day-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+
+/* ── EXERCISE LIST ITEM ── */
+.ex-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);gap:10px;}
+.ex-item:last-child{border-bottom:none;}
+.ex-muscle-tag{font-size:10px;font-weight:600;color:var(--text3);background:var(--surface2);padding:2px 7px;border-radius:6px;}
+.ex-item-name{font-size:14px;font-weight:600;color:var(--text);flex:1;}
+.ex-item-add{width:30px;height:30px;border-radius:8px;border:none;background:var(--accent-light);color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;}
+.ex-item-add.added{background:var(--green-light);color:var(--green);}
+
+/* ── INPUT STYLES ── */
+.form-field{margin-bottom:14px;}
+.field-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:5px;}
+input.inp,textarea.inp,select.inp{width:100%;padding:11px 13px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:14px;background:var(--surface);color:var(--text);outline:none;transition:border-color .2s;}
+input.inp:focus,textarea.inp:focus,select.inp:focus{border-color:var(--accent);}
+select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+textarea.inp{resize:vertical;min-height:65px;}
+
+/* ── TAP BUTTONS ── */
+.tap-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;}
+.tap{padding:9px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .1s;}
+.tap.sel{background:var(--accent);color:white;border-color:var(--accent);}
+.tap.sel-red{background:var(--accent2);color:white;border-color:var(--accent2);}
+
+/* ── SESSION EXERCISE CARD ── */
+.sess-ex{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.sess-ex-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.sess-ex-meta{font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5;}
+.sess-ex-prev{font-size:12px;color:var(--accent);background:var(--accent-light);border-radius:8px;padding:5px 10px;margin-bottom:10px;font-weight:600;}
+.weight-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+
+/* ── BOTTOM ACTIONS ── */
+.btn-row{display:flex;gap:8px;margin-top:14px;}
+.btn{padding:13px 18px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn:active{opacity:.8;}
+.btn-primary{flex:1;background:var(--accent);color:white;}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-danger{background:var(--accent2-light);color:var(--accent2);}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border);}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px;}
+
+/* ── TIMER ── */
+.timer-wrap{background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:14px;}
+.timer-inner{display:flex;align-items:center;gap:14px;}
+.timer-presets{display:flex;gap:6px;margin-bottom:8px;}
+.tpreset{padding:4px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;}
+.tpreset.active{background:var(--accent);color:white;border-color:var(--accent);}
+.tstart{padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;}
+.treset{padding:7px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;}
+
+/* ── HISTORY ── */
+.hist-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
+.hist-header{display:flex;align-items:center;padding:14px 16px;cursor:pointer;gap:10px;}
+.hist-body{padding:0 16px 14px;border-top:1px solid var(--border);}
+.hist-ex{padding:8px 0;border-bottom:1px solid var(--border);}
+.hist-ex:last-child{border-bottom:none;}
+.hist-note{margin-top:10px;padding:10px 12px;background:var(--amber-light);border-radius:10px;font-size:13px;color:#92400e;border:1px solid #fde68a;}
+
+/* ── PROG HISTORY ── */
+.ph-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;}
+.ph-name{padding:12px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;}
+.ph-row{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--surface2);}
+.ph-row:last-child{border-bottom:none;}
+.ph-row.latest{background:var(--accent-light);}
+
+/* ── MODAL OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:flex;align-items:flex-end;backdrop-filter:blur(2px);}
+.modal{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:20px 16px env(safe-area-inset-bottom,20px);animation:slideUp .28s cubic-bezier(.32,.72,0,1);}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ── SEARCH BAR ── */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:12px;border:1.5px solid var(--border);}
+.search-bar input{flex:1;border:none;background:transparent;font-size:14px;color:var(--text);outline:none;}
+.search-bar svg{width:16px;height:16px;fill:var(--text3);flex-shrink:0;}
+
+/* ── MUSCLE FILTER ── */
+.muscle-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none;}
+.muscle-scroll::-webkit-scrollbar{display:none;}
+.mchip{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.mchip.active{background:var(--accent);color:white;border-color:var(--accent);}
+
+/* ── SELECTED EX LIST ── */
+.sel-ex-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+.sel-ex-item:last-child{border-bottom:none;}
+.sel-ex-name{flex:1;font-size:13px;font-weight:600;}
+.sel-ex-rm{width:28px;height:28px;border-radius:7px;border:none;background:var(--accent2-light);color:var(--accent2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ── NOTE TOGGLE ── */
+.note-toggle{font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;padding:3px 0;display:inline-flex;align-items:center;gap:4px;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:14px;line-height:1.9;}
+.empty-icon{font-size:36px;margin-bottom:8px;}
+
+.fade-in{animation:fadeIn .22s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.divider{height:1px;background:var(--border);margin:12px 0;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top" style="padding-bottom:12px">
+    <div class="header-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29l-1.43-1.43z"/></svg>
+      </div>
+      <div>
+        <div class="header-title">GymLog</div>
+        <div class="header-sub">Diario Allenamento</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showView('home')" id="nav-home"><span class="nav-icon">⊞</span>Home</button>
+    <button class="nav-btn" onclick="showView('programs')" id="nav-programs"><span class="nav-icon">◫</span>Schede</button>
+    <button class="nav-btn" onclick="showView('session')" id="nav-session"><span class="nav-icon">＋</span>Sessione</button>
+    <button class="nav-btn" onclick="showView('history')" id="nav-history"><span class="nav-icon">≡</span>Storico</button>
+    <button class="nav-btn" onclick="showView('progress')" id="nav-progress"><span class="nav-icon">↗</span>Progresso</button>
+  </nav>
+</div>
+
+<div class="content">
+  <div id="view-home"></div>
+  <div id="view-programs" style="display:none"></div>
+  <div id="view-session" style="display:none"></div>
+  <div id="view-history" style="display:none"></div>
+  <div id="view-progress" style="display:none"></div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay" style="display:none" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-body">
+    <div class="modal-handle"></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// EXERCISE LIBRARY
+// ══════════════════════════════════════════════════════
+const LIBRARY = {
+  "Petto":["Panca piana bilanciere","Panca piana manubri","Panca inclinata bilanciere","Panca inclinata manubri","Panca declinata","Spinte ai cavi bassi (croci)","Croci manubri piana","Croci manubri inclinata","Chest press macchina","Push-up","Dip alle parallele","Cable fly alto","Cable fly basso","Pec deck macchina"],
+  "Schiena":["Stacco da terra","Trazioni alla sbarra","Lat machine presa larga","Lat machine triangolo","Rematore bilanciere","Rematore manubrio","Rematore cavo seduto","Low row macchina","Australian pull-up","Face pull","Pulley alto","Pulley basso","Iperextension","Good morning","Shrug bilanciere","Shrug manubri"],
+  "Spalle":["Lento avanti bilanciere","Lento avanti manubri seduto","Lento avanti manubri in piedi","Military press","Alzate laterali manubri","Alzate laterali cavo","Alzate frontali","Alzate posteriori prone","Rear delt fly macchina","Arnold press","Upright row","Lateral raise macchina"],
+  "Gambe":["Squat bilanciere","Squat goblet manubrio","Leg press","Pressa monopodalica","Bulgarian split squat","Affondi manubri","Affondi con bilanciere","Step-up","Leg extension","Leg curl","Romanian deadlift","Stacco sumo","Hip thrust bilanciere","Hip thrust manubrio","Glute bridge","Calf raises bilaterale","Calf raises monolaterale","Seated calf raises","Hack squat macchina"],
+  "Bicipiti":["Curl bilanciere","Curl bilanciere presa inversa","Curl manubri alternati","Curl manubri seduto","Curl concentrato","Curl martello manubri","Hammer curl cavo","Curl cavo basso","Curl macchina","Preacher curl","Spider curl","21s"],
+  "Tricipiti":["French press bilanciere","French press manubri","Pushdown corda","Pushdown barra dritta","Kickback manubrio","Dip stretti","Close grip bench press","Overhead extension cavo","Overhead extension manubrio","JM press","Skull crusher"],
+  "Addome":["Plank","Plank laterale","Crunch","Crunch inverso","Leg raise","Hanging leg raise","Russian twist","Dead-bug","Bird-dog","Ab wheel","Mountain climber","Cable crunch","Pallof press"],
+  "Corpo libero":["Push-up","Dip","Trazioni","Australian pull-up","Pistol squat","Burpee","Jump squat","Lunge","Nordic curl","Glute ham raise","L-sit"],
+  "Cardio":["Corsa tapis roulant","Bike stazionaria","Ellittica","Vogatore","Corda per saltare","Kettlebell swing","Battle ropes","Box jump","Farmer walk","Sled push"],
+};
+const ALL_MUSCLES = Object.keys(LIBRARY);
+const METHODS = ["3×8","3×10","3×12","4×8","4×10","4×12","5×5","3×15","3×20","2×max","3×max","3×6/8","3×8/10","3×10/12","3×12/15","Rest pause","Drop set","Super set","Myo reps","1½ rep","Giant set","AMRAP","EMOM","Piramide","Piramide inversa"];
+const WEIGHTS_MANUBRI=["1","2","3","4","5","6","7","8","9","10","11","12","14","16","18","20","22","24","26","28","30","32","34","36","38","40","44","48","50"];
+const WEIGHTS_MAC=["5","10","15","20","25","30","35","40","45","50","55","60","65","70","75","80","90","100","110","120","130","140","150"];
+const WEIGHTS_CAVO=["2.5","5","7.5","10","12.5","15","17.5","20","22.5","25","27.5","30","32.5","35","40","45","50"];
+const WEIGHTS_BAR=["20","25","30","35","40","45","50","55","60","65","70","75","80","85","90","95","100","110","120"];
+const REP_OPTS=["4","5","6","7","8","9","10","11","12","13","14","15","16","18","20","25","30","max","30s","45s","60s","90s","2min"];
+const SERIE_OPTS=["1","2","3","4","5","6"];
+const PROG_COLORS=["#2D6BE4","#E85D3A","#2A9D6A","#9333EA","#D97706","#0891B2","#DB2777","#65A30D"];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const SK="gymlog_v1";
+let db=dbLoad();
+let currentView="home";
+// session state
+let sessProgId=null,sessDayIdx=null,sessData={};
+// timer
+let tInt=null,tSec=0,tTarget=90,tRun=false;
+// modal state
+let modalCtx={};
+
+function dbLoad(){
+  try{return JSON.parse(localStorage.getItem(SK))||{programs:[],sessions:[]};}
+  catch{return{programs:[],sessions:[]};}
+}
+function dbSave(){localStorage.setItem(SK,JSON.stringify(db));}
+function uid(){return Date.now()+Math.random().toString(36).slice(2,7);}
+function today(){return new Date().toISOString().split("T")[0];}
+function fmt(iso){if(!iso)return"";const[y,m,d]=iso.split("-");return`${d}/${m}/${y}`;}
+
+function getLastExData(progId,dayIdx,exName){
+  const hist=db.sessions.filter(s=>s.progId===progId&&s.dayIdx===dayIdx);
+  if(!hist.length)return null;
+  const last=hist[0];
+  return last.rows.find(r=>r.name===exName)||null;
+}
+
+function showView(v){
+  ["home","programs","session","history","progress"].forEach(k=>{
+    document.getElementById("view-"+k).style.display=k===v?"block":"none";
+    document.getElementById("nav-"+k).classList.toggle("active",k===v);
+  });
+  currentView=v;
+  if(v==="home")renderHome();
+  if(v==="programs")renderPrograms();
+  if(v==="session")renderSession();
+  if(v==="history")renderHistory();
+  if(v==="progress")renderProgress();
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════════
+function renderHome(){
+  const total=db.sessions.length;
+  const last=db.sessions[0];
+  const weeks=Math.ceil(total/3)||0;
+  let h=`<div class="stats-row">
+    <div class="stat-card"><div class="stat-icon">🏋️</div><div class="stat-val">${total}</div><div class="stat-lbl">Sessioni totali</div></div>
+    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val">${last?fmt(last.date):"—"}</div><div class="stat-lbl">Ultima</div></div>
+    <div class="stat-card"><div class="stat-icon">🗓</div><div class="stat-val">${db.programs.length}</div><div class="stat-lbl">Schede attive</div></div>
+  </div>`;
+
+  if(db.programs.length===0){
+    h+=`<div class="card card-pad" style="text-align:center;padding:32px 20px">
+      <div style="font-size:36px;margin-bottom:10px">◫</div>
+      <div style="font-weight:700;font-size:16px;margin-bottom:6px">Nessuna scheda</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:16px">Crea la tua prima scheda per iniziare ad allenarti</div>
+      <button class="btn btn-primary" onclick="showView('programs');openNewProgram()">＋ Crea scheda</button>
+    </div>`;
+  } else {
+    h+=`<div class="slabel">Avvia sessione</div>`;
+    db.programs.forEach(p=>{
+      h+=`<div class="prog-card" onclick="quickStart('${p.id}')">
+        <div class="prog-card-header">
+          <div class="prog-color-dot" style="background:${p.color}"></div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:15px">${p.name}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">${p.days.length} giorni · ${p.days.map(d=>d.exercises.length).reduce((a,b)=>a+b,0)} esercizi totali</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div style="display:flex;gap:6px;padding:0 16px 14px;flex-wrap:wrap">
+          ${p.days.map((d,i)=>`<span class="pill pill-gray">${d.name}</span>`).join("")}
+        </div>
+      </div>`;
+    });
+  }
+
+  if(db.sessions.length>0){
+    h+=`<div class="slabel" style="margin-top:16px">Sessioni recenti</div>`;
+    db.sessions.slice(0,3).forEach(s=>{
+      const p=db.programs.find(x=>x.id===s.progId);
+      const dayName=p?p.days[s.dayIdx]?.name:"—";
+      h+=`<div class="card" style="margin-bottom:8px">
+        <div class="hist-header" onclick="showView('history')">
+          <div class="prog-color-dot" style="background:${p?.color||'#ccc'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${p?.name||"—"} · ${dayName}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">${fmt(s.date)} · ${s.rows.length} esercizi</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  const el=document.getElementById("view-home");
+  el.innerHTML=h;el.classList.add("fade-in");
+}
+
+function quickStart(progId){
+  const p=db.programs.find(x=>x.id===progId);
+  if(!p||!p.days.length)return;
+  if(p.days.length===1){startSession(progId,0);}
+  else{openModal("day-pick",{progId});}
+}
+
+// ══════════════════════════════════════════════════════
+// PROGRAMS
+// ══════════════════════════════════════════════════════
+function renderPrograms(){
+  const el=document.getElementById("view-programs");
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="slabel" style="margin:0">Le mie schede</div>
+    <button class="btn btn-primary btn-sm" onclick="openNewProgram()">＋ Nuova</button>
+  </div>`;
+
+  if(!db.programs.length){
+    h+=`<div class="empty"><div class="empty-icon">◫</div>Nessuna scheda ancora.<br>Creane una per iniziare.</div>`;
+  } else {
+    db.programs.forEach(p=>{
+      const totEx=p.days.map(d=>d.exercises.length).reduce((a,b)=>a+b,0);
+      h+=`<div class="card" style="margin-bottom:10px">
+        <div class="prog-card-header">
+          <div class="prog-color-dot" style="background:${p.color};width:14px;height:14px;border-radius:4px"></div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:15px">${p.name}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">${p.days.length} giorni · ${totEx} esercizi</div>
+          </div>
+        </div>
+        <div style="padding:0 16px;margin-bottom:10px">
+          ${p.days.map((d,di)=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">
+            <span class="pill pill-gray" style="font-size:11px">${d.name}</span>
+            <span style="font-size:12px;color:var(--text2);flex:1">${d.exercises.length} esercizi</span>
+            <button class="btn btn-sm" style="background:var(--accent-light);color:var(--accent);border:none;padding:4px 10px;font-size:11px" onclick="editDay('${p.id}',${di})">Modifica</button>
+          </div>`).join("")}
+        </div>
+        <div class="prog-card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="addDayToProgram('${p.id}')">＋ Giorno</button>
+          <button class="btn btn-ghost btn-sm" onclick="editProgramMeta('${p.id}')">✎ Rinomina</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProgram('${p.id}')">✕ Elimina</button>
+        </div>
+      </div>`;
+    });
+  }
+  el.innerHTML=h;el.classList.add("fade-in");
+}
+
+function openNewProgram(){
+  openModal("new-program",{});
+}
+
+function editProgramMeta(progId){
+  const p=db.programs.find(x=>x.id===progId);
+  openModal("edit-program-meta",{progId,name:p.name,color:p.color});
+}
+
+function addDayToProgram(progId){
+  openModal("new-day",{progId});
+}
+
+function editDay(progId,dayIdx){
+  openModal("edit-day",{progId,dayIdx});
+}
+
+function deleteProgram(progId){
+  if(!confirm("Eliminare questa scheda? Le sessioni registrate rimarranno nello storico."))return;
+  db.programs=db.programs.filter(p=>p.id!==progId);
+  dbSave();renderPrograms();
+}
+
+// ══════════════════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════════════════
+function startSession(progId,dayIdx){
+  sessProgId=progId;
+  sessDayIdx=dayIdx;
+  sessData={};
+  showView("session");
+  renderSessionForm();
+}
+
+function renderSession(){
+  if(!sessProgId||sessDayIdx===null){
+    const el=document.getElementById("view-session");
+    if(!db.programs.length){
+      el.innerHTML=`<div class="empty"><div class="empty-icon">＋</div>Crea prima una scheda<br>nella sezione Schede.</div>`;
+    } else {
+      let h=`<div class="slabel">Seleziona giornata</div>`;
+      db.programs.forEach(p=>{
+        p.days.forEach((d,di)=>{
+          h+=`<button style="display:flex;align-items:center;width:100%;padding:14px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;text-align:left;margin-bottom:8px;gap:12px;box-shadow:var(--shadow)" onclick="startSession('${p.id}',${di})">
+            <div style="width:10px;height:10px;border-radius:50%;background:${p.color};flex-shrink:0"></div>
+            <div style="flex:1"><div style="font-weight:700;font-size:14px">${d.name}</div><div style="font-size:12px;color:var(--text2)">${p.name} · ${d.exercises.length} esercizi</div></div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>`;
+        });
+      });
+      el.innerHTML=h;
+    }
+    return;
+  }
+  renderSessionForm();
+}
+
+function renderSessionForm(){
+  const p=db.programs.find(x=>x.id===sessProgId);
+  if(!p)return;
+  const day=p.days[sessDayIdx];
+  const el=document.getElementById("view-session");
+
+  day.exercises.forEach((ex,i)=>{
+    if(!sessData[i]){
+      const last=getLastExData(sessProgId,sessDayIdx,ex.name);
+      sessData[i]={
+        carico:last?last.carico:ex.defaultCarico||"",
+        rep:last?last.rep:ex.defaultRep||"10",
+        serie:last?last.serie:ex.defaultSerie||"3",
+        note:""
+      };
+    }
+  });
+
+  const exHtml=day.exercises.map((ex,i)=>{
+    const last=getLastExData(sessProgId,sessDayIdx,ex.name);
+    const prevLabel=last
+      ?`↩ Ultima: ${last.carico&&last.carico!=="0"?last.carico+" kg":"corpo libero"} × ${last.rep} · ${last.serie||3} serie`
+      :(ex.note?`💡 ${ex.note}`:`🏁 Prima sessione`);
+
+    const weights=getWeightList(ex.name,ex.tipoCarico);
+    const isCorpo=!weights||ex.tipoCarico==="corpo";
+    const curCarico=sessData[i].carico;
+    const isCustom=!isCorpo&&weights&&!weights.includes(curCarico)&&curCarico&&curCarico!=="0";
+
+    const wHtml=isCorpo
+      ?`<div style="padding:10px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);font-size:13px;color:var(--text3)">Corpo libero</div>`
+      :`<select class="inp" id="c-${i}" onchange="onCarico(${i},this.value)">
+          ${weights.map(w=>`<option value="${w}"${curCarico===w?" selected":""}>${w} kg</option>`).join("")}
+          <option value="__c__"${isCustom?" selected":""}>✏️ Altro…</option>
+        </select>
+        <div id="cc-${i}" style="display:${isCustom?"block":"none"};margin-top:6px">
+          <input class="inp" type="number" placeholder="kg liberi" value="${isCustom?curCarico:""}" oninput="sessData[${i}].carico=this.value"/>
+        </div>`;
+
+    const sHtml=SERIE_OPTS.map(s=>`<option value="${s}"${(sessData[i].serie||"3")===s?" selected":""}>${s} serie</option>`).join("");
+    const rHtml=REP_OPTS.map(r=>`<button class="tap${sessData[i].rep===r?" sel":""}" onclick="selRep(${i},'${r}')" id="r-${i}-${r.replace(/[^a-z0-9]/gi,'_')}">${r}</button>`).join("");
+
+    return `<div class="sess-ex">
+      <div class="sess-ex-name">${ex.name}</div>
+      <div class="sess-ex-meta">${ex.method||"—"} · ⏱ ${ex.rec||"90s"}</div>
+      <div class="sess-ex-prev">${prevLabel}</div>
+      <div class="weight-grid">
+        <div><label class="field-label">${isCorpo?"Carico":"Carico (kg)"}</label>${wHtml}</div>
+        <div><label class="field-label">Serie</label><select class="inp" id="s-${i}" onchange="sessData[${i}].serie=this.value">${sHtml}</select></div>
+      </div>
+      <div><label class="field-label">Rep per serie</label><div class="tap-row">${rHtml}</div></div>
+      <div style="margin-top:8px">
+        <span class="note-toggle" onclick="togNote(${i})">✎ Nota</span>
+        <div id="nb-${i}" style="display:${sessData[i].note?"block":"none"};margin-top:6px">
+          <input class="inp" id="n-${i}" value="${sessData[i].note}" placeholder="dolori, variazioni, sensazioni…" oninput="sessData[${i}].note=this.value"/>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  el.innerHTML=`
+  <div style="background:${p.color};border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px">
+    <div style="font-size:10px;opacity:.75;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px">Sessione in corso</div>
+    <div style="font-size:19px;font-weight:800">${day.name}</div>
+    <div style="font-size:13px;opacity:.8;margin-top:2px">${p.name} · ${day.exercises.length} esercizi</div>
+  </div>
+
+  <!-- DATE -->
+  <div class="form-field">
+    <label class="field-label">Data</label>
+    <input type="date" class="inp" id="sess-date" value="${today()}"/>
+  </div>
+
+  <!-- TIMER -->
+  <div style="margin-bottom:14px">
+    <button style="padding:8px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer" onclick="togTimer()" id="ttb">⏱ Timer recupero</button>
+    <div id="tbox" style="display:none;margin-top:10px">
+      <div class="timer-wrap"><div class="timer-inner">
+        <svg width="58" height="58" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="5"
+            stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"
+            transform="rotate(-90 32 32)" id="tarc" style="transition:stroke-dashoffset .5s"/>
+          <text x="32" y="36" text-anchor="middle" font-size="11" font-weight="600"
+            fill="var(--accent)" font-family="'JetBrains Mono',monospace" id="ttxt">00:00</text>
+        </svg>
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase">Recupero target</div>
+          <div class="timer-presets">
+            <button class="tpreset" onclick="setTT(60)" id="tp60">60s</button>
+            <button class="tpreset active" onclick="setTT(90)" id="tp90">90s</button>
+            <button class="tpreset" onclick="setTT(120)" id="tp120">120s</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="tstart" id="tsb" onclick="togTRun()">▶ Start</button>
+            <button class="treset" onclick="resetT()">↺</button>
+          </div>
+        </div>
+        <div id="tdone" style="font-size:24px;display:none">✅</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="slabel">Esercizi</div>
+  ${exHtml}
+
+  <div class="form-field">
+    <label class="field-label">Note generali sessione</label>
+    <textarea class="inp" id="sess-note" placeholder="Come ti sei sentito? Dolori? Progressi?"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" style="background:${p.color}" onclick="saveSession()">Salva sessione</button>
+    <button class="btn btn-ghost" onclick="sessProgId=null;sessDayIdx=null;renderSession()">✕</button>
+  </div>`;
+}
+
+function getWeightList(exName,tipoCarico){
+  if(tipoCarico==="corpo")return null;
+  if(tipoCarico==="bilanciere")return WEIGHTS_BAR;
+  if(tipoCarico==="cavo")return WEIGHTS_CAVO;
+  if(tipoCarico==="macchina")return WEIGHTS_MAC;
+  // guess from name
+  const n=exName.toLowerCase();
+  if(n.includes("bilanciere")||n.includes("barbell")||n.includes("stacco")||n.includes("squat")&&!n.includes("goblet"))return WEIGHTS_BAR;
+  if(n.includes("cavo")||n.includes("cable")||n.includes("pulley")||n.includes("pushdown")||n.includes("lat machine")||n.includes("pulldown"))return WEIGHTS_CAVO;
+  if(n.includes("macchina")||n.includes("press macchina")||n.includes("leg ext")||n.includes("leg curl")||n.includes("pressa")||n.includes("pec deck")||n.includes("chest press"))return WEIGHTS_MAC;
+  if(n.includes("corpo libero")||n.includes("push-up")||n.includes("plank")||n.includes("bird")||n.includes("dead-bug")||n.includes("hip thrust bil"))return null;
+  return WEIGHTS_MANUBRI;
+}
+
+function onCarico(i,v){
+  sessData[i].carico=v;
+  const cc=document.getElementById("cc-"+i);
+  if(cc)cc.style.display=v==="__c__"?"block":"none";
+}
+function selRep(i,v){
+  sessData[i].rep=v;
+  REP_OPTS.forEach(r=>{
+    const b=document.getElementById("r-"+i+"-"+r.replace(/[^a-z0-9]/gi,"_"));
+    if(b)b.classList.toggle("sel",r===v);
+  });
+}
+function togNote(i){
+  const b=document.getElementById("nb-"+i);
+  if(b)b.style.display=b.style.display==="none"?"block":"none";
+}
+function saveSession(){
+  const p=db.programs.find(x=>x.id===sessProgId);
+  const day=p.days[sessDayIdx];
+  const rows=day.exercises.map((ex,i)=>{
+    const cel=document.getElementById("c-"+i);
+    const ccel=document.querySelector("#cc-"+i+" input");
+    let c=sessData[i]?.carico||"";
+    if(cel&&cel.value==="__c__"&&ccel&&ccel.value)c=ccel.value;
+    else if(cel&&cel.value&&cel.value!=="__c__")c=cel.value;
+    const sel=document.getElementById("s-"+i);
+    return{name:ex.name,carico:c,rep:sessData[i]?.rep||"",serie:sel?sel.value:"3",note:sessData[i]?.note||""};
+  });
+  db.sessions.unshift({id:uid(),progId:sessProgId,dayIdx:sessDayIdx,date:document.getElementById("sess-date")?.value||today(),rows,generalNote:document.getElementById("sess-note")?.value||""});
+  dbSave();sessProgId=null;sessDayIdx=null;sessData={};
+  showView("history");
+}
+
+// TIMER
+function togTimer(){
+  const b=document.getElementById("tbox"),btn=document.getElementById("ttb"),v=b.style.display==="none";
+  b.style.display=v?"block":"none";btn.style.background=v?"var(--accent)":"var(--surface)";btn.style.color=v?"white":"var(--text2)";
+}
+function setTT(t){tTarget=t;resetT();["60","90","120"].forEach(v=>{const e=document.getElementById("tp"+v);if(e)e.classList.toggle("active",parseInt(v)===t);});}
+function togTRun(){if(tRun){clearInterval(tInt);tRun=false;}else{tRun=true;tInt=setInterval(tickT,1000);}updTBtn();}
+function tickT(){tSec++;updTDisp();if(tSec>=tTarget){clearInterval(tInt);tRun=false;updTBtn();}}
+function resetT(){clearInterval(tInt);tRun=false;tSec=0;updTDisp();updTBtn();}
+function updTDisp(){
+  const m=Math.floor(tSec/60),s=tSec%60,done=tSec>=tTarget;
+  const tx=document.getElementById("ttxt"),arc=document.getElementById("tarc"),di=document.getElementById("tdone"),inn=document.getElementById("tbox");
+  if(tx)tx.textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  if(arc){arc.style.strokeDashoffset=175.9*(1-Math.min(tSec/tTarget,1));arc.setAttribute("stroke",done?"var(--accent2)":"var(--accent)");}
+  if(tx)tx.setAttribute("fill",done?"var(--accent2)":"var(--accent)");
+  if(di)di.style.display=done?"block":"none";
+}
+function updTBtn(){const b=document.getElementById("tsb");if(b)b.textContent=tRun?"⏸ Pausa":tSec===0?"▶ Start":"▶ Riprendi";}
+
+// ══════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════
+function renderHistory(){
+  const el=document.getElementById("view-history");
+  if(!db.sessions.length){el.innerHTML=`<div class="slabel">Storico</div><div class="empty"><div class="empty-icon">≡</div>Nessuna sessione ancora.</div>`;return;}
+  let h=`<div class="slabel">Storico sessioni (${db.sessions.length})</div>`;
+  db.sessions.forEach(s=>{
+    const p=db.programs.find(x=>x.id===s.progId);
+    const dayName=p?p.days[s.dayIdx]?.name:"Scheda eliminata";
+    h+=`<div class="hist-card">
+      <div class="hist-header" onclick="togSess('${s.id}')">
+        <div class="prog-color-dot" style="background:${p?.color||"#ccc"}"></div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${p?.name||"—"} · ${dayName}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${fmt(s.date)} · ${s.rows.length} esercizi</div>
+        </div>
+        <span style="color:var(--text3);font-size:14px" id="arr-${s.id}">▾</span>
+      </div>
+      <div id="bd-${s.id}" style="display:none" class="hist-body">
+        ${s.rows.map(r=>`<div class="hist-ex">
+          <div style="font-weight:600;font-size:13px;margin-bottom:3px">${r.name}</div>
+          <div style="display:flex;gap:12px;font-size:12px;color:var(--text2);flex-wrap:wrap">
+            ${r.serie?`<span>◈ ${r.serie} serie</span>`:""}
+            ${r.carico&&r.carico!=="0"?`<span>⊞ ${r.carico} kg</span>`:`<span>⊞ Corpo libero</span>`}
+            ${r.rep?`<span>↻ ${r.rep} rep</span>`:""}
+          </div>
+          ${r.note?`<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:3px">✎ ${r.note}</div>`:""}
+        </div>`).join("")}
+        ${s.generalNote?`<div class="hist-note">✎ ${s.generalNote}</div>`:""}
+        <button class="btn btn-danger btn-sm" style="margin-top:10px" onclick="delSess('${s.id}')">Elimina sessione</button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=h;el.classList.add("fade-in");
+}
+function togSess(id){
+  const b=document.getElementById("bd-"+id),a=document.getElementById("arr-"+id),v=b.style.display==="none";
+  b.style.display=v?"block":"none";if(a)a.textContent=v?"▴":"▾";
+}
+function delSess(id){
+  if(!confirm("Eliminare questa sessione?"))return;
+  db.sessions=db.sessions.filter(s=>s.id!==id);dbSave();renderHistory();
+}
+
+// ══════════════════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════════════════
+function renderProgress(){
+  const el=document.getElementById("view-progress");
+  const map={};
+  [...db.sessions].reverse().forEach(s=>s.rows.forEach(r=>{
+    if(r.carico&&r.carico!=="0"){
+      if(!map[r.name])map[r.name]=[];
+      map[r.name].push({date:s.date,carico:r.carico,rep:r.rep});
+    }
+  }));
+  if(!Object.keys(map).length){el.innerHTML=`<div class="slabel">Progressione</div><div class="empty"><div class="empty-icon">↗</div>Nessun dato ancora.<br>Completa qualche sessione.</div>`;return;}
+  let h=`<div class="slabel">Progressione carichi</div>`;
+  Object.entries(map).forEach(([name,entries])=>{
+    h+=`<div class="ph-card">
+      <div class="ph-name">${name}</div>
+      ${entries.map((e,i)=>`<div class="ph-row${i===entries.length-1?" latest":""}">
+        <span style="font-size:11px;color:var(--text3);width:70px;flex-shrink:0;font-family:'JetBrains Mono'">${fmt(e.date)}</span>
+        <span style="font-weight:700;font-size:14px;color:var(--accent);margin-right:10px">${e.carico} kg</span>
+        ${e.rep?`<span style="font-size:12px;color:var(--text2)">× ${e.rep}</span>`:""}
+        ${i===entries.length-1?`<span style="margin-left:auto;font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.5px">ULTIMO</span>`:""}
+      </div>`).join("")}
+    </div>`;
+  });
+  el.innerHTML=h;el.classList.add("fade-in");
+}
+
+// ══════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════
+function openModal(type,ctx){
+  modalCtx=ctx;
+  const overlay=document.getElementById("modal-overlay");
+  const content=document.getElementById("modal-content");
+  overlay.style.display="flex";
+  if(type==="new-program")content.innerHTML=modalNewProgram();
+  if(type==="edit-program-meta")content.innerHTML=modalEditProgramMeta(ctx);
+  if(type==="new-day")content.innerHTML=modalNewDay(ctx);
+  if(type==="edit-day")content.innerHTML=modalEditDay(ctx);
+  if(type==="day-pick")content.innerHTML=modalDayPick(ctx);
+  if(type==="exercise-picker")content.innerHTML=modalExPicker(ctx);
+}
+function closeModal(){document.getElementById("modal-overlay").style.display="none";modalCtx={};}
+function closeModalOutside(e){if(e.target===document.getElementById("modal-overlay"))closeModal();}
+
+// Modal: new program
+function modalNewProgram(){
+  const colors=PROG_COLORS.map((c,i)=>`<div onclick="document.getElementById('prog-color').value='${c}';this.parentNode.querySelectorAll('.color-dot').forEach(x=>x.style.outline='none');this.style.outline='2px solid #333'" class="color-dot" style="width:26px;height:26px;border-radius:7px;background:${c};cursor:pointer;outline:${i===0?"2px solid #333":"none"};outline-offset:2px"></div>`).join("");
+  return `<div class="modal-title">Nuova scheda</div>
+    <div class="form-field"><label class="field-label">Nome scheda</label><input class="inp" id="prog-name" placeholder="es. Scheda Fisio, Push Pull Legs…"/></div>
+    <div class="form-field"><label class="field-label">Colore</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${colors}</div>
+      <input type="hidden" id="prog-color" value="${PROG_COLORS[0]}"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="createProgram()">Crea scheda</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+    </div>`;
+}
+function createProgram(){
+  const name=document.getElementById("prog-name")?.value?.trim();
+  const color=document.getElementById("prog-color")?.value||PROG_COLORS[0];
+  if(!name)return alert("Inserisci un nome per la scheda");
+  const p={id:uid(),name,color,days:[]};
+  db.programs.push(p);dbSave();closeModal();renderPrograms();
+}
+
+// Modal: edit program meta
+function modalEditProgramMeta(ctx){
+  const p=db.programs.find(x=>x.id===ctx.progId);
+  const colors=PROG_COLORS.map((c,i)=>`<div onclick="document.getElementById('ep-color').value='${c}';this.parentNode.querySelectorAll('.color-dot').forEach(x=>x.style.outline='none');this.style.outline='2px solid #333'" class="color-dot" style="width:26px;height:26px;border-radius:7px;background:${c};cursor:pointer;outline:${c===p.color?"2px solid #333":"none"};outline-offset:2px"></div>`).join("");
+  return `<div class="modal-title">Modifica scheda</div>
+    <div class="form-field"><label class="field-label">Nome</label><input class="inp" id="ep-name" value="${p.name}"/></div>
+    <div class="form-field"><label class="field-label">Colore</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${colors}</div>
+      <input type="hidden" id="ep-color" value="${p.color}"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveProgramMeta('${ctx.progId}')">Salva</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+    </div>`;
+}
+function saveProgramMeta(progId){
+  const p=db.programs.find(x=>x.id===progId);
+  p.name=document.getElementById("ep-name")?.value?.trim()||p.name;
+  p.color=document.getElementById("ep-color")?.value||p.color;
+  dbSave();closeModal();renderPrograms();
+}
+
+// Modal: new day
+function modalNewDay(ctx){
+  return `<div class="modal-title">Aggiungi giorno</div>
+    <div class="form-field"><label class="field-label">Nome giorno</label><input class="inp" id="day-name" placeholder="es. Giorno A, Push, Gambe…"/></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="createDay('${ctx.progId}')">Crea giorno</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Annulla</button>
+    </div>`;
+}
+function createDay(progId){
+  const name=document.getElementById("day-name")?.value?.trim();
+  if(!name)return alert("Inserisci un nome per il giorno");
+  const p=db.programs.find(x=>x.id===progId);
+  p.days.push({name,exercises:[]});
+  dbSave();closeModal();
+  const dayIdx=p.days.length-1;
+  openModal("edit-day",{progId,dayIdx});
+}
+
+// Modal: edit day
+function modalEditDay(ctx){
+  const p=db.programs.find(x=>x.id===ctx.progId);
+  const day=p.days[ctx.dayIdx];
+  const selList=day.exercises.length
+    ?day.exercises.map((ex,i)=>`<div class="sel-ex-item">
+        <span class="sel-ex-name">${ex.name}</span>
+        <span class="pill pill-gray" style="font-size:10px">${ex.method||"—"}</span>
+        <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:11px" onclick="editExSettings('${ctx.progId}',${ctx.dayIdx},${i})">⚙</button>
+        <button class="sel-ex-rm" onclick="removeEx('${ctx.progId}',${ctx.dayIdx},${i})">−</button>
+      </div>`).join("")
+    :`<div style="padding:16px 0;text-align:center;color:var(--text3);font-size:13px">Nessun esercizio. Aggiungine uno!</div>`;
+  return `<div class="modal-title">${day.name} <span style="font-size:13px;color:var(--text3);font-weight:400">${p.name}</span></div>
+    <div style="margin-bottom:14px">${selList}</div>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn btn-primary" onclick="openExPicker('${ctx.progId}',${ctx.dayIdx})">＋ Aggiungi esercizio</button>
+      <button class="btn btn-ghost" onclick="closeModal();renderPrograms()">Fine</button>
+    </div>`;
+}
+
+function removeEx(progId,dayIdx,exIdx){
+  const p=db.programs.find(x=>x.id===progId);
+  p.days[dayIdx].exercises.splice(exIdx,1);
+  dbSave();openModal("edit-day",{progId,dayIdx});
+}
+
+// Exercise settings inside a day
+function editExSettings(progId,dayIdx,exIdx){
+  const p=db.programs.find(x=>x.id===progId);
+  const ex=p.days[dayIdx].exercises[exIdx];
+  const mOpts=METHODS.map(m=>`<option value="${m}"${ex.method===m?" selected":""}>${m}</option>`).join("");
+  document.getElementById("modal-content").innerHTML=`
+    <div class="modal-title">⚙ ${ex.name}</div>
+    <div class="form-field"><label class="field-label">Metodo</label>
+      <select class="inp" id="ex-method">${mOpts}<option value="__c__">✏️ Altro…</option></select>
+    </div>
+    <div class="form-field"><label class="field-label">Recupero</label>
+      <select class="inp" id="ex-rec">
+        ${["60s","90s","120s","2min","3min","personalizzato"].map(r=>`<option value="${r}"${ex.rec===r?" selected":""}>${r}</option>`).join("")}
+      </select>
+    </div>
+    <div class="form-field"><label class="field-label">Nota esercizio (opzionale)</label>
+      <input class="inp" id="ex-note" value="${ex.note||""}" placeholder="es. parti dal sinistro, schiena neutra…"/>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveExSettings('${progId}',${dayIdx},${exIdx})">Salva</button>
+      <button class="btn btn-ghost" onclick="openModal('edit-day',{progId:'${progId}',dayIdx:${dayIdx}})">← Indietro</button>
+    </div>`;
+}
+function saveExSettings(progId,dayIdx,exIdx){
+  const p=db.programs.find(x=>x.id===progId);
+  const ex=p.days[dayIdx].exercises[exIdx];
+  ex.method=document.getElementById("ex-method")?.value||ex.method;
+  ex.rec=document.getElementById("ex-rec")?.value||ex.rec;
+  ex.note=document.getElementById("ex-note")?.value||"";
+  dbSave();openModal("edit-day",{progId,dayIdx});
+}
+
+// Modal: day pick for quick start
+function modalDayPick(ctx){
+  const p=db.programs.find(x=>x.id===ctx.progId);
+  return `<div class="modal-title">${p.name}</div>
+    <div class="slabel">Seleziona giorno</div>
+    ${p.days.map((d,i)=>`<button style="display:flex;align-items:center;width:100%;padding:14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-bottom:8px;gap:10px" onclick="closeModal();startSession('${p.id}',${i})">
+      <div style="width:8px;height:8px;border-radius:50%;background:${p.color}"></div>
+      <div style="flex:1;text-align:left"><div style="font-weight:700;font-size:14px">${d.name}</div><div style="font-size:12px;color:var(--text2)">${d.exercises.length} esercizi</div></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>`).join("")}
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px" onclick="closeModal()">Annulla</button>`;
+}
+
+// Modal: exercise picker
+let pickerMuscle="Tutti";
+let pickerSearch="";
+let pickerProgId=null;
+let pickerDayIdx=null;
+
+function openExPicker(progId,dayIdx){
+  pickerProgId=progId;pickerDayIdx=dayIdx;pickerMuscle="Tutti";pickerSearch="";
+  openModal("exercise-picker",{progId,dayIdx});
+}
+
+function modalExPicker(ctx){
+  const p=db.programs.find(x=>x.id===ctx.progId);
+  const day=p.days[ctx.dayIdx];
+  const added=day.exercises.map(e=>e.name);
+
+  const muscles=["Tutti",...ALL_MUSCLES];
+  const mFilters=muscles.map(m=>`<div class="mchip${m===pickerMuscle?" active":""}" onclick="filterMuscle('${m}')">${m}</div>`).join("");
+
+  let filtered=[];
+  if(pickerMuscle==="Tutti"){Object.values(LIBRARY).forEach(arr=>filtered.push(...arr));}
+  else filtered=LIBRARY[pickerMuscle]||[];
+  if(pickerSearch)filtered=filtered.filter(e=>e.toLowerCase().includes(pickerSearch.toLowerCase()));
+  filtered=[...new Set(filtered)].sort();
+
+  const exList=filtered.map(name=>{
+    const isAdded=added.includes(name);
+    return `<div class="ex-item">
+      <div style="flex:1">
+        <div class="ex-item-name">${name}</div>
+      </div>
+      <button class="ex-item-add${isAdded?" added":""}" onclick="addExToDay('${name}')">${isAdded?"✓":"＋"}</button>
+    </div>`;
+  }).join("");
+
+  return `<div class="modal-title">＋ Aggiungi esercizio</div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 111 11a6 6 0 0116 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input placeholder="Cerca esercizio…" value="${pickerSearch}" oninput="pickerSearch=this.value;refreshPicker()" id="ex-search"/>
+    </div>
+    <div class="muscle-scroll" id="mscroll">${mFilters}</div>
+    <div id="ex-list" style="max-height:45vh;overflow-y:auto">${exList||'<div style="padding:16px;text-align:center;color:var(--text3)">Nessun risultato</div>'}</div>
+    <div class="divider"></div>
+    <div style="margin-bottom:8px">
+      <div class="slabel">Aggiungi esercizio personalizzato</div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="custom-ex" placeholder="Nome esercizio…" style="flex:1"/>
+        <button class="btn btn-primary btn-sm" onclick="addCustomEx()">＋</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px" onclick="openModal('edit-day',{progId:'${ctx.progId}',dayIdx:${ctx.dayIdx}})">← Torna al giorno</button>`;
+}
+
+function filterMuscle(m){
+  pickerMuscle=m;
+  document.querySelectorAll(".mchip").forEach(el=>el.classList.toggle("active",el.textContent===m));
+  refreshPickerList();
+}
+
+function refreshPicker(){
+  refreshPickerList();
+}
+
+function refreshPickerList(){
+  const p=db.programs.find(x=>x.id===pickerProgId);
+  const day=p.days[pickerDayIdx];
+  const added=day.exercises.map(e=>e.name);
+  let filtered=[];
+  if(pickerMuscle==="Tutti"){Object.values(LIBRARY).forEach(arr=>filtered.push(...arr));}
+  else filtered=LIBRARY[pickerMuscle]||[];
+  if(pickerSearch)filtered=filtered.filter(e=>e.toLowerCase().includes(pickerSearch.toLowerCase()));
+  filtered=[...new Set(filtered)].sort();
+  const exList=document.getElementById("ex-list");
+  if(!exList)return;
+  exList.innerHTML=filtered.map(name=>{
+    const isAdded=added.includes(name);
+    return `<div class="ex-item">
+      <div style="flex:1"><div class="ex-item-name">${name}</div></div>
+      <button class="ex-item-add${isAdded?" added":""}" onclick="addExToDay('${name}')">${isAdded?"✓":"＋"}</button>
+    </div>`;
+  }).join("")||'<div style="padding:16px;text-align:center;color:var(--text3)">Nessun risultato</div>';
+}
+
+function addExToDay(name){
+  const p=db.programs.find(x=>x.id===pickerProgId);
+  const day=p.days[pickerDayIdx];
+  if(day.exercises.find(e=>e.name===name)){
+    day.exercises=day.exercises.filter(e=>e.name!==name);
+  } else {
+    day.exercises.push({name,method:"3×10",rec:"90s",note:""});
+  }
+  dbSave();refreshPickerList();
+}
+
+function addCustomEx(){
+  const inp=document.getElementById("custom-ex");
+  const name=inp?.value?.trim();
+  if(!name)return;
+  const p=db.programs.find(x=>x.id===pickerProgId);
+  const day=p.days[pickerDayIdx];
+  if(!day.exercises.find(e=>e.name===name)){
+    day.exercises.push({name,method:"3×10",rec:"90s",note:""});
+    dbSave();
+  }
+  inp.value="";refreshPickerList();
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>
